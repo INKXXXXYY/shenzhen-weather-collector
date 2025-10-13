@@ -1,2 +1,3 @@
 ts_iso,provider,temp_c,precip_mm_1h,humidity_pct,wind_speed_mps,wind_dir_deg,pressure_hpa,weather_code_or_text
 2025-10-13T15:31:04+08:00,open-meteo,29.9,0.3,74.0,8.7,142.0,1011.2,95
+2025-10-13T16:02:40+08:00,深圳下沙,open-meteo,29.7,0.3,74.0,8.9,133.0,1011.2,95,雷阵雨
