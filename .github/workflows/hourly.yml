@@ -58,9 +58,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add weather_log.csv weather_log.sqlite3 || true
+          git add weather_log.csv
           git commit -m "data: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "No changes to commit"
           git push
+
 
       # 兜底：就算 push 失败，也把文件作为 Artifact 可下载
       - name: Upload CSV artifact (debug)
