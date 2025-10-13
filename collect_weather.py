@@ -8,7 +8,7 @@ from dateutil import tz
 
 # ===== 基本配置 =====
 # 深圳市中心坐标（可改成你家/公司附近坐标）
-LAT, LON = 22.543096, 114.057865
+LAT, LON = 22.529448, 114.023567
 LOCATION_NAME = os.getenv("LOCATION_NAME", "深圳市").strip()
 
 CSV_PATH = "weather_log.csv"
