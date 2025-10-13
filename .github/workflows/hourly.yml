@@ -1,11 +1,11 @@
-permissions:
-  contents: write   # 允许此 workflow 往仓库提交
-
 name: Hourly Weather Collector
 on:
   schedule:
-    - cron: "3 * * * *"   # UTC 每小时第3分。小时级任务不必调时区，记录里我们写Asia/Shanghai
+    - cron: "3 * * * *"      # 每小时第3分
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   run:
@@ -26,16 +26,23 @@ jobs:
 
       - name: Run collector
         env:
-          # QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
           QWEATHER_LOCATION: "440300"
         run: |
           python collect_weather.py
+          echo "--- after run, list files ---"
+          ls -lah
+          echo "--- show first lines if exists ---"
+          [ -f weather_log.csv ] && head -n 5 weather_log.csv || (echo "weather_log.csv NOT FOUND" && exit 1)
 
-      - name: Commit CSV (optional)
-        if: ${{ success() }}
+      - name: Git status (debug)
+        run: |
+          git status --porcelain || true
+
+      - name: Commit CSV
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add weather_log.csv weather_log.sqlite3 || true
-          git commit -m "data: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "No changes"
+          git commit -m "data: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "No changes to commit"
           git push || echo "No push (maybe no changes)"
