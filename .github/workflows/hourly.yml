@@ -1,3 +1,6 @@
+permissions:
+  contents: write   # 允许此 workflow 往仓库提交
+
 name: Hourly Weather Collector
 on:
   schedule:
