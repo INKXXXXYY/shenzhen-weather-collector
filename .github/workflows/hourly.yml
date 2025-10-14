@@ -11,12 +11,19 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
+    env:                                 # ← 放到 Job 级
+      QWEATHER_API_KEY:   ${{ secrets.QWEATHER_API_KEY }}
+      QWEATHER_API_HOST:  ${{ secrets.QWEATHER_API_HOST }}   # 先只读 Secrets，别做三元表达式
+      QWEATHER_LOCATION:  "114.06,22.54"
+      QWEATHER_LANG:      "zh"
+      QWEATHER_UNIT:      "m"
+      LOCATION_NAME:      "深圳市"
+      LAT:                "22.543096"
+      LON:                "114.057865"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-          fetch-depth: 0
+
 
       - name: Setup Python
         uses: actions/setup-python@v5
