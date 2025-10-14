@@ -30,13 +30,11 @@ jobs:
 
       - name: Run collector
         env:
-          # 必填：Key
+          # 直接把 Secrets/Vars 注入，不做表达式判断
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-      
-          # ✅ Host 读取优先级：Secrets > Variables > 默认
-          QWEATHER_API_HOST: ${{ secrets.QWEATHER_API_HOST != '' && secrets.QWEATHER_API_HOST || (vars.QWEATHER_API_HOST != '' && vars.QWEATHER_API_HOST || 'devapi.qweather.com') }}
-      
-          # 位置 & 其他
+          QWEATHER_API_HOST: ${{ secrets.QWEATHER_API_HOST }}
+          # 如果你是放在 Variables 里，也可以再加一行（可选）：
+          # QWEATHER_API_HOST: ${{ vars.QWEATHER_API_HOST }}
           QWEATHER_LOCATION: "114.06,22.54"
           QWEATHER_LANG: "zh"
           QWEATHER_UNIT: "m"
@@ -46,12 +44,9 @@ jobs:
         run: |
           echo "Host (masked if secret): $QWEATHER_API_HOST"
           python - << 'PY'
-          import os, hashlib, sys
-          host = os.environ.get("QWEATHER_API_HOST","")
-          print("HOST_LEN=", len(host), "HOST_SHA8=", hashlib.sha256(host.encode()).hexdigest()[:8])
-          if host == "devapi.qweather.com":
-              print("ERROR: QWEATHER_API_HOST is still default. Check that the workflow on the DEFAULT BRANCH contains this env expression, and that the secret name matches exactly.", file=sys.stderr)
-              sys.exit(2)
+          import os, hashlib
+          host = os.environ.get("QWEATHER_API_HOST", "")
+          print("HOST_LEN=", len(host), "HOST_SHA8=", hashlib.sha256(host.encode()).hexdigest()[:8] if host else "EMPTY")
           PY
           python collect_weather.py
           head -n 6 weather_log.csv || true
