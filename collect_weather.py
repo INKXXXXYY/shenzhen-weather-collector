@@ -28,7 +28,7 @@ WMO_WEATHER_CODES = {
 
 # ====== 和风天气（开发者 or 商用皆可，通过 host+header 切换）======
 QWEATHER_API_KEY  = os.getenv("QWEATHER_API_KEY", "").strip()
-QWEATHER_API_HOST = os.getenv("QWEATHER_API_HOST").strip()  # 开发者默认
+QWEATHER_API_HOST = os.getenv("QWEATHER_API_HOST", "").strip()  # 开发者默认
 # location：优先读 env；否则使用经纬度（和风要求经度在前、纬度在后）
 _q_loc_env = os.getenv("QWEATHER_LOCATION", "").strip()
 if _q_loc_env:
