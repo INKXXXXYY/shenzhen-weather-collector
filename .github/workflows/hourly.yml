@@ -33,21 +33,17 @@ jobs:
 
       - name: Run collector
         env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}   # 没配也没关系
-          QWEATHER_LOCATION: "440300"
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          QWEATHER_LOCATION: "114.06,22.54"   # 或者直接放到 Secrets 里
+          QWEATHER_LANG: "zh"
+          QWEATHER_UNIT: "m"
+          LOCATION_NAME: "深圳市"
         run: |
+          echo "Using QWEATHER_LOCATION=$QWEATHER_LOCATION"
           python collect_weather.py
-
-          echo "--- list files (after run) ---"
           ls -lah
+          head -n 5 weather_log.csv
 
-          echo "--- preview csv ---"
-          if [ -f weather_log.csv ]; then
-            head -n 5 weather_log.csv
-          else
-            echo "weather_log.csv NOT FOUND"
-            exit 1
-          fi
 
       - name: Git status (debug)
         run: |
