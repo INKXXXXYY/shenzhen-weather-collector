@@ -28,26 +28,40 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run collector
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          QWEATHER_API_HOST: ${{ secrets.QWEATHER_API_HOST != '' && secrets.QWEATHER_API_HOST || 'devapi.qweather.com' }}
-          QWEATHER_LOCATION: "114.06,22.54"
-          QWEATHER_LANG: "zh"
-          QWEATHER_UNIT: "m"
-          LOCATION_NAME: "深圳市"
-          LAT: "22.543096"
-          LON: "114.057865"
-        run: |
-          echo "Host is set (masked): $QWEATHER_API_HOST"
-          # 打印长度 & 哈希，验证确实不是默认（不会泄露具体值）
-          python - << 'PY'
-          import os,hashlib
-          h = hashlib.sha256(os.environ["QWEATHER_API_HOST"].encode()).hexdigest()[:8]
-          print("HOST_LEN=", len(os.environ["QWEATHER_API_HOST"]), "HOST_SHA8=", h)
-          PY
-          python collect_weather.py
-          head -n 6 weather_log.csv || true
+- name: Run collector
+  env:
+    # 必填：key
+    QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+
+    # ✅ Host 读取优先级：Secrets > Variables > 默认
+    QWEATHER_API_HOST: ${{ secrets.QWEATHER_API_HOST != '' && secrets.QWEATHER_API_HOST || (vars.QWEATHER_API_HOST != '' && vars.QWEATHER_API_HOST || 'devapi.qweather.com') }}
+
+    # 位置 & 其他
+    QWEATHER_LOCATION: "114.06,22.54"
+    QWEATHER_LANG: "zh"
+    QWEATHER_UNIT: "m"
+    LOCATION_NAME: "深圳市"
+    LAT: "22.543096"
+    LON: "114.057865"
+  run: |
+    echo "Host (masked): $QWEATHER_API_HOST"
+    python - << 'PY'
+import os,hashlib,sys
+host=os.environ.get("QWEATHER_API_HOST","")
+h=hashlib.sha256(host.encode()).hexdigest()[:8]
+print("HOST_LEN=",len(host),"HOST_SHA8=",h)
+if host=="devapi.qweather.com":
+    print("ERROR: QWEATHER_API_HOST is still default. Check Secrets/Variables spelling and scope.", file=sys.stderr)
+    sys.exit(2)
+PY
+
+    python collect_weather.py
+
+    echo "--- after run ---"
+    ls -lah
+    echo "--- preview ---"
+    head -n 6 weather_log.csv || true
+
 
 
       - name: Commit CSV
