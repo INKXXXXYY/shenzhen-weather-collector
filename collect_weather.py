@@ -7,8 +7,8 @@ from datetime import datetime
 from dateutil import tz
 
 # ====== 基本配置（可用环境变量覆盖）======
-LAT  = float(os.getenv("LAT", 22.543096))         # 纬度
-LON  = float(os.getenv("LON", 114.057865))        # 经度
+LAT  = float(os.getenv("LAT", 22.529428310439947))         # 纬度
+LON  = float(os.getenv("LON", 114.02333090824368))        # 经度
 LOCATION_NAME = os.getenv("LOCATION_NAME", "深圳市").strip()
 
 CSV_PATH = "weather_log.csv"
