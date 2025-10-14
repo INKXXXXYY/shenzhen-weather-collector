@@ -30,31 +30,25 @@ jobs:
 
       - name: Run collector
         env:
-          # —— 必填：你的和风 Key，放 Secrets 里 ——
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-
-          # —— 可选：如果你是商用版或控制台要求自定义 Host，就在 Secrets/Variables 里覆盖 ——
-          QWEATHER_API_HOST: ${{ vars.QWEATHER_API_HOST || 'devapi.qweather.com' }}
-
-          # —— 可选：坐标/地名（默认用 LAT/LON 组合成 114.xx,22.xx） ——
+          QWEATHER_API_HOST: ${{ secrets.QWEATHER_API_HOST != '' && secrets.QWEATHER_API_HOST || 'devapi.qweather.com' }}
           QWEATHER_LOCATION: "114.06,22.54"
           QWEATHER_LANG: "zh"
           QWEATHER_UNIT: "m"
-
-          # —— 可选：显示在 CSV 里的地名 —— 
           LOCATION_NAME: "深圳市"
-
-          # —— 可选：基础坐标（Open-Meteo 和 QWeather 默认都会用到）——
           LAT: "22.543096"
           LON: "114.057865"
         run: |
-          echo "Using QWEATHER_API_HOST=$QWEATHER_API_HOST"
-          echo "Using QWEATHER_LOCATION=$QWEATHER_LOCATION"
+          echo "Host is set (masked): $QWEATHER_API_HOST"
+          # 打印长度 & 哈希，验证确实不是默认（不会泄露具体值）
+          python - << 'PY'
+          import os,hashlib
+          h = hashlib.sha256(os.environ["QWEATHER_API_HOST"].encode()).hexdigest()[:8]
+          print("HOST_LEN=", len(os.environ["QWEATHER_API_HOST"]), "HOST_SHA8=", h)
+          PY
           python collect_weather.py
-          echo "--- after run ---"
-          ls -lah
-          echo "--- preview ---"
           head -n 6 weather_log.csv || true
+
 
       - name: Commit CSV
         run: |
