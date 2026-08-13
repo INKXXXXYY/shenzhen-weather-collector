@@ -2,7 +2,9 @@ name: Hourly Weather Collector
 
 on:
   schedule:
-    - cron: "3 * * * *"      # 每小时第3分钟（避开整点延迟）
+    # 每小时跑两次（:03 和 :33），保证 Actions 队列延迟时至少命中一次
+    - cron: "3 * * * *"
+    - cron: "33 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -11,9 +13,10 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    env:                                 # ← 放到 Job 级
+    timeout-minutes: 8          # 硬限制，防止 job 超时拖累下一个 slot
+    env:
       QWEATHER_API_KEY:   ${{ secrets.QWEATHER_API_KEY }}
-      QWEATHER_API_HOST:  ${{ secrets.QWEATHER_API_HOST }}   # 先只读 Secrets，别做三元表达式
+      QWEATHER_API_HOST:  ${{ secrets.QWEATHER_API_HOST }}
       QWEATHER_LOCATION:  "114.06,22.54"
       QWEATHER_LANG:      "zh"
       QWEATHER_UNIT:      "m"
@@ -23,7 +26,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -36,18 +38,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run collector
-        run: |
-          echo "Host (masked if secret): $QWEATHER_API_HOST"
-          python - << 'PY'
-          import os, hashlib, sys
-          host = os.environ.get("QWEATHER_API_HOST", "")
-          print("HOST_LEN=", len(host), "HOST_SHA8=", hashlib.sha256(host.encode()).hexdigest()[:8] if host else "EMPTY")
-          if not host:
-              print("ERROR: QWEATHER_API_HOST is EMPTY (secret未注入).", file=sys.stderr); sys.exit(2)
-          PY
-          python collect_weather.py
-          head -n 6 weather_log.csv || true
-
+        run: python collect_weather.py
 
       - name: Commit CSV
         run: |
@@ -56,9 +47,3 @@ jobs:
           git add weather_log.csv || true
           git commit -m "data: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "No changes to commit"
           git push
-
-      - name: Upload CSV artifact (debug)
-        uses: actions/upload-artifact@v4
-        with:
-          name: weather_log
-          path: weather_log.csv
